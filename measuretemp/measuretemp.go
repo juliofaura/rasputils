@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -59,35 +58,32 @@ func main() {
 	graphFile := os.Args[1] + ".png"
 
 	sensors, err := ds18b20.Sensors()
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 
 	// fmt.Printf("sensor IDs: %v\n", sensors)
 
 	csvFile, err := os.OpenFile(dataFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println(err)
-	}
+	check(err)
 
 	for _, sensor := range sensors {
 		t, err := ds18b20.Temperature(sensor)
 		if err == nil {
 			// fmt.Printf("sensor: %s temperature: %.2f°C\n", sensor, t)
 			now := time.Now()
-			if _, err = fmt.Fprintf(csvFile, "%d,%04d,%02d,%02d,%01d,%02d,%02d,%02d,%.2f\n",
-				now.Unix(), now.Year(), now.Month(), now.Day(), now.Weekday(), now.Hour(), now.Minute(), now.Second(), t); err != nil {
-				panic(err)
-			}
+			_, err = fmt.Fprintf(csvFile, "%d,%04d,%02d,%02d,%01d,%02d,%02d,%02d,%.2f\n",
+				now.Unix(), now.Year(), now.Month(), now.Day(), now.Weekday(), now.Hour(), now.Minute(), now.Second(), t)
+			check(err)
+			// if _, err = fmt.Fprintf(csvFile, "%d,%04d,%02d,%02d,%01d,%02d,%02d,%02d,%.2f\n",
+			// 	now.Unix(), now.Year(), now.Month(), now.Day(), now.Weekday(), now.Hour(), now.Minute(), now.Second(), t); err != nil {
+			// 	panic(err)
+			// }
 		}
 	}
 
 	csvFile.Close()
 
 	csvFile, err = os.Open(dataFile)
-	if err != nil {
-		log.Println(err)
-	}
+	check(err)
 	defer csvFile.Close()
 
 	reader := csv.NewReader(bufio.NewReader(csvFile))
@@ -96,28 +92,56 @@ func main() {
 		line, error := reader.Read()
 		if error == io.EOF {
 			break
-		} else if error != nil {
-			log.Fatal(error)
+		} else {
+			check(error)
 		}
 		var dataPoint datapoint
+		// Replaced the panic's for break's so we will ignore badly formatted lines
 		dataPoint.Timestamp, err = strconv.ParseInt(line[0], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Year, err = strconv.ParseInt(line[1], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Month, err = strconv.ParseInt(line[2], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Day, err = strconv.ParseInt(line[3], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Weekday, err = strconv.ParseInt(line[4], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Hour, err = strconv.ParseInt(line[5], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Minute, err = strconv.ParseInt(line[6], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Second, err = strconv.ParseInt(line[7], 10, 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		dataPoint.Temperature, err = strconv.ParseFloat(line[8], 64)
-		check(err)
+		if err != nil {
+			break
+		}
+		// check(err)
 		data = append(data, dataPoint)
 	}
 	var XValues []float64
@@ -178,7 +202,8 @@ func main() {
 		Title: "Room temperature vs time",
 	}
 
-	f, _ := os.Create(graphFile)
+	f, err := os.Create(graphFile)
+	check(err)
 	defer f.Close()
 	graph.Render(chart.PNG, f)
 }

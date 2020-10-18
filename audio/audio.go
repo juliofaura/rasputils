@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -9,36 +11,46 @@ import (
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/speaker"
 	"github.com/faiface/beep/wav"
-	termbox "github.com/nsf/termbox-go"
+
+	rpio "github.com/stianeikeland/go-rpio"
 )
 
-var initialized bool
+var (
+	initialized bool
+	inputPin1   = rpio.Pin(17)
+	inputPin2   = rpio.Pin(27)
+	c           = []byte{}
+	d           = []byte{}
+	g           = []byte{}
+	a           = []byte{}
+)
+
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func play(note string) {
 	fmt.Println("Playing note: ", note)
 
-	var filename string
+	var n []byte
 	switch note {
 	case "c":
-		filename = "./Celtic-harp-c2.wav"
+		n = c
 	case "d":
-		filename = "./Celtic-harp-d5.wav"
+		n = d
 	case "g":
-		filename = "./Celtic-harp-g4.wav"
+		n = g
 	case "a":
-		filename = "./Celtic-harp-a5.wav"
+		n = a
 	default:
 		log.Panicln("Wrong note")
 	}
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
 
+	f := bytes.NewReader(n)
 	streamer, format, err := wav.Decode(f)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 	defer streamer.Close()
 
 	if !initialized {
@@ -57,36 +69,56 @@ func play(note string) {
 
 func main() {
 
-	err := termbox.Init()
-	if err != nil {
-		panic(err)
+	if err := rpio.Open(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	defer termbox.Close()
 
-	termbox.SetInputMode(termbox.InputEsc)
+	inputPin1.Input()
+	inputPin2.Input()
 
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	termbox.Flush()
+	fmt.Println("Hola, ya he configurado los pines 17 y 27 como entrada")
+
+	var err error
+	c, err = ioutil.ReadFile("./Celtic-harp-c2.wav")
+	check(err)
+	d, err = ioutil.ReadFile("./Celtic-harp-d5.wav")
+	check(err)
+	g, err = ioutil.ReadFile("./Celtic-harp-g4.wav")
+	check(err)
+	a, err = ioutil.ReadFile("./Celtic-harp-a5.wav")
+	check(err)
+
+	var dedo1puesto bool
+	var dedo2puesto bool
+	var dedo1estaba_puesto bool
+	var dedo2estaba_puesto bool
 
 	for {
-		switch ev := termbox.PollEvent(); ev.Type {
-		case termbox.EventKey:
-			switch key := ev.Ch; key {
-			case 'd':
-				go play("d")
-			case 'g':
-				go play("g")
-			case 'a':
-				go play("a")
-			case 'q':
-				fmt.Println("Exiting now. Have a nice day!")
-				os.Exit(0)
-			default:
-				fmt.Printf("Unknown note %v\n", key)
-			}
-		default:
-			fmt.Println("Unknown event: ", ev)
+		// fmt.Printf("En el bucle, dedo 1 = %v [antes %v], dedo 2 = %v [antes %v\n", dedo1puesto, dedo1estaba_puesto, dedo2puesto, dedo2estaba_puesto)
+		if inputPin1.Read() == rpio.High {
+			dedo1puesto = true
+		} else {
+			dedo1puesto = false
 		}
+
+		if inputPin2.Read() == rpio.High {
+			dedo2puesto = true
+		} else {
+			dedo2puesto = false
+		}
+
+		if dedo1estaba_puesto == false && dedo1puesto == true {
+			go play("g")
+		}
+
+		if dedo2estaba_puesto == false && dedo2puesto == true {
+			go play("d")
+		}
+
+		dedo1estaba_puesto = dedo1puesto
+		dedo2estaba_puesto = dedo2puesto
+		time.Sleep(5 * time.Millisecond)
 	}
 
 }
