@@ -17,8 +17,10 @@ func main() {
 		t, err := ds18b20.Temperature(sensor)
 		if err == nil {
 			fmt.Printf("%.2f\n", t)
-		} else {
-			fmt.Println("NA")
+			return
 		}
 	}
+	// If we get here that means that the measurement failed :()
+	fmt.Println("NA")
+
 }
