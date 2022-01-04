@@ -1,0 +1,12 @@
+#!/bin/bash
+nfilesinicial=$(ls /Volumes/Alarms|wc -l)
+echo n files is $nfilesinicial
+while true; do
+   nfiles=$(ls /Volumes/Alarms|wc -l)
+   if [ $nfiles -ne $nfilesinicial ]; then
+      echo Alarm!
+      afplay ~/Desktop/CBNF6LK-security-breach-alarm.mp3
+      nfilesinicial=$(ls /Volumes/Alarms|wc -l)
+   fi
+   sleep 1
+done
