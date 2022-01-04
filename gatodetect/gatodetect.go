@@ -59,7 +59,7 @@ func main() {
 			if !alarm {
 				fmt.Println("Puerta abierta!!")
 				now := time.Now()
-				alarmFileName := fmt.Sprintf(alarmDir+"%0d-%d-%d-%d-%d-%d-%d-%d-%d",
+				alarmFileName := fmt.Sprintf(alarmDir+"%0d-%d-%d-%d-%d-%d-%d-%d-%d.txt",
 					now.Unix(),
 					now.Year(),
 					now.Month(),
