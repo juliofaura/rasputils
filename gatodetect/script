@@ -6,7 +6,7 @@ while true; do
    if [ $nfiles -ne $nfilesinicial ]; then
       echo Alarm!
       afplay ~/Desktop/CBNF6LK-security-breach-alarm.mp3
-      nfilesinicial=$(ls /Volumes/Alarms|wc -l)
+      nfilesinicial=$nfiles
    fi
    sleep 1
 done
