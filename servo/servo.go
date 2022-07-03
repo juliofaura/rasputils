@@ -63,6 +63,14 @@ func main() {
 		s, _ := reader.ReadString('\n')
 		command := strings.Fields(s)
 		switch command[0] {
+		case "0":
+			pin.High()
+			time.Sleep(pos + 100*time.Microsecond)
+			pin.Low()
+			time.Sleep(3*time.Millisecond - pos)
+			pin.High()
+			time.Sleep(pos)
+			pin.Low()
 		case "1":
 			pos = Pos1
 			pin.High()
