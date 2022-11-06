@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	T    = 20 * time.Millisecond
-	Pos1 = 1250 * time.Microsecond
+	T    = 30 * time.Millisecond
+	Pos1 = 500 * time.Microsecond
 	Pos2 = 1500 * time.Microsecond
-	Pos3 = 1750 * time.Microsecond
+	Pos3 = 2500 * time.Microsecond
 )
 
 var (
@@ -65,9 +65,9 @@ func main() {
 		switch command[0] {
 		case "0":
 			pin.High()
-			time.Sleep(pos + 100*time.Microsecond)
+			time.Sleep(pos + 500*time.Microsecond)
 			pin.Low()
-			time.Sleep(3*time.Millisecond - pos)
+			time.Sleep(T - pos)
 			pin.High()
 			time.Sleep(pos)
 			pin.Low()
