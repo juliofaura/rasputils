@@ -77,6 +77,8 @@ func main() {
 			// 	now.Unix(), now.Year(), now.Month(), now.Day(), now.Weekday(), now.Hour(), now.Minute(), now.Second(), t); err != nil {
 			// 	panic(err)
 			// }
+		} else {
+			fmt.Println("Error measuring temperature: ", err)
 		}
 	}
 
